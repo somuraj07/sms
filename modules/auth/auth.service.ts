@@ -1,22 +1,48 @@
-import { Role } from "@/app/generated/prisma/client";
-import { AuthRepository } from "./auth.repository";
-import { hashedPassword } from "@/lib/hash";
-
-
+import prisma from "@/lib/db";
+import bcrypt from "bcryptjs";
 
 export class AuthService {
-    private repo = new AuthRepository();
-    async signup(name :string, email :string, password :string, role :Role){
-        const existingUser = await this.repo.findbyEmail(email);
-        if(existingUser){
-            throw new Error("User already exists");
-        }
-        const hashed = await hashedPassword(password);
-        return this.repo.createUser({
-            name,
-            email,
-            password :hashed,
-            role,
-        })
+  async signup(
+    name: string,
+    email: string,
+    password: string,
+    role: any
+  ) {
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      throw new Error("User already exists");
     }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    return prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        role,
+      },
+    });
+  }
+
+  async signin(email: string, password: string) {
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user || !user.password) {
+      throw new Error("Invalid email or password");
+    }
+
+    const isValid = await bcrypt.compare(password, user.password);
+
+    if (!isValid) {
+      throw new Error("Invalid email or password");
+    }
+
+    return user;
+  }
 }

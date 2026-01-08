@@ -6,15 +6,15 @@ const adapter = new PrismaPg({
   ssl: { rejectUnauthorized: false }, // important for NeonDB
 });
 
-const prismaClientSingleton = () => {
+const prismaClientSinpngleton = () => {
   return new PrismaClient({ adapter });
 };
 
 declare const globalThis: {
-  prismaGlobal?: ReturnType<typeof prismaClientSingleton>;
+  prismaGlobal?: ReturnType<typeof prismaClientSinpngleton>;
 } & typeof global;
 
-const prisma = globalThis.prismaGlobal ?? prismaClientSingleton();
+const prisma = globalThis.prismaGlobal ?? prismaClientSinpngleton();
 
 export default prisma;
 
