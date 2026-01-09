@@ -2,9 +2,13 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "@/lib/db";
-import bcrypt from "bcryptjs";
 import { Role } from "@/app/generated/prisma/client";
+import { container } from "@/infrastructure/di/container";
+import { SigninRequestDTO } from "@/application/dtos/SigninDTO";
 
+/**
+ * NextAuth Configuration - Uses clean architecture
+ */
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
 
@@ -22,39 +26,43 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        // 1️⃣ Find user
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-          include: {
-            school: {
-              select: { name: true },
+        try {
+          // Use clean architecture signin use case
+          const signinRequest: SigninRequestDTO = {
+            email: credentials.email,
+            password: credentials.password,
+          };
+
+          const controller = container.authController;
+          const result = await controller.signin(signinRequest);
+
+          if (!result.success || !result.data) {
+            return null;
+          }
+
+          // Get school name if needed
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email },
+            include: {
+              school: {
+                select: { name: true },
+              },
             },
-          },
-        });
+          });
 
-        if (!user || !user.password) {
+          // Return minimal user object for NextAuth
+          return {
+            id: result.data.id,
+            name: result.data.name,
+            email: result.data.email,
+            role: result.data.role,
+            schoolId: result.data.schoolId,
+            schoolName: user?.school?.name ?? null,
+          };
+        } catch (error) {
+          console.error("NextAuth authorize error:", error);
           return null;
         }
-
-        // 2️⃣ Verify password
-        const isValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        );
-
-        if (!isValid) {
-          return null;
-        }
-
-        // 3️⃣ Return minimal user object
-        return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          schoolId: user.schoolId,
-          schoolName: user.school?.name ?? null,
-        };
       },
     }),
   ],

@@ -49,14 +49,26 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const res = await fetch("/api/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
+    try {
+      const res = await fetch("/api/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
 
-    const data = await res.json();
-    alert(data.message);
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "Signup failed");
+        return;
+      }
+
+      alert(data.message || "User created successfully");
+      // Optionally redirect to login
+      window.location.href = "/login";
+    } catch (error) {
+      alert("An error occurred. Please try again.");
+    }
   };
 
   return (

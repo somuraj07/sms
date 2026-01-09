@@ -1,90 +1,135 @@
 "use client";
 
-import { signIn, useSession } from "next-auth/react";
-import { useState, useEffect } from "react";
+import { signIn } from "next-auth/react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { data: session } = useSession();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-
-  // Redirect based on role if session exists
-  useEffect(() => {
-    if (session?.user?.role) {
-      if (session.user.role === "SUPERADMIN") {
-        router.push("/dashboard/superadmin");
-      } else if (session.user.role === "ADMIN") {
-        router.push("/dashboard/admin");
-      } else {
-        router.push("/dashboard");
-      }
-    }
-  }, [session, router]);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
 
-    const res = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
-
-    if (res?.error) {
-      setError("Invalid email or password");
-      return;
-    }
-
-    // Fetch session to get role and redirect accordingly
     try {
-      const sessionRes = await fetch("/api/auth/session");
-      const sessionData = await sessionRes.json();
-      
-      if (sessionData?.user?.role) {
-        if (sessionData.user.role === "SUPERADMIN") {
-          router.push("/dashboard/superadmin");
-        } else if (sessionData.user.role === "ADMIN") {
-          router.push("/dashboard/admin");
-        } else {
-          router.push("/dashboard");
-        }
+      const res = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (res?.error) {
+        setError("Invalid email or password");
+        setLoading(false);
+        return;
+      }
+
+      if (res?.ok) {
+        // Wait a bit for session to be established, then fetch and redirect
+        setTimeout(async () => {
+          try {
+            const sessionRes = await fetch("/api/auth/session", {
+              cache: "no-store",
+            });
+            const sessionData = await sessionRes.json();
+            
+            if (sessionData?.user?.role) {
+              const role = sessionData.user.role;
+              
+              // Use window.location for full page refresh to ensure session is loaded
+              if (role === "SUPERADMIN") {
+                window.location.href = "/dashboard/superadmin";
+              } else if (role === "ADMIN") {
+                window.location.href = "/dashboard/admin";
+              } else if (role === "TEACHER") {
+                window.location.href = "/teacher/dashboard";
+              } else if (role === "STUDENT") {
+                window.location.href = "/student/dashboard";
+              } else {
+                window.location.href = "/dashboard";
+              }
+            } else {
+              window.location.href = "/dashboard";
+            }
+          } catch (err) {
+            console.error("Session fetch error:", err);
+            window.location.href = "/dashboard";
+          }
+        }, 200);
       } else {
-        router.push("/dashboard");
+        setError("Login failed. Please try again.");
+        setLoading(false);
       }
     } catch (err) {
-      router.push("/dashboard");
+      console.error("Login error:", err);
+      setError("An error occurred during login. Please try again.");
+      setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-sm mx-auto space-y-4">
-      <h1 className="text-xl font-semibold">Sign In</h1>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-100">
+      <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">Welcome Back</h1>
+          <p className="text-gray-600">Sign in to your account</p>
+        </div>
 
-      {error && <p className="text-red-500">{error}</p>}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
+              {error}
+            </div>
+          )}
 
-      <input
-        type="email"
-        placeholder="Email"
-        className="border p-2 w-full"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Email
+            </label>
+            <input
+              type="email"
+              placeholder="Enter your email"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              disabled={loading}
+            />
+          </div>
 
-      <input
-        type="password"
-        placeholder="Password"
-        className="border p-2 w-full"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Password
+            </label>
+            <input
+              type="password"
+              placeholder="Enter your password"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={loading}
+            />
+          </div>
 
-      <button className="bg-black text-white px-4 py-2 w-full">
-        Sign In
-      </button>
-    </form>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-indigo-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? "Signing in..." : "Sign In"}
+          </button>
+        </form>
+
+        <div className="mt-6 text-center text-sm text-gray-600">
+          <p>Login with any role: SuperAdmin, Admin, Teacher, or Student</p>
+        </div>
+      </div>
+    </div>
   );
 }
