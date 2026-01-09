@@ -40,13 +40,25 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          // Get school name if needed
+          // Get school name and teacher subjects if needed
           const user = await prisma.user.findUnique({
             where: { email: credentials.email },
             include: {
               school: {
                 select: { name: true },
               },
+            },
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              role: true,
+              schoolId: true,
+              school: {
+                select: { name: true },
+              },
+              subjectsTaught: true,
+              mobile: true,
             },
           });
 
@@ -58,6 +70,8 @@ export const authOptions: NextAuthOptions = {
             role: result.data.role,
             schoolId: result.data.schoolId,
             schoolName: user?.school?.name ?? null,
+            subjectsTaught: user?.subjectsTaught ?? null,
+            mobile: user?.mobile ?? null,
           };
         } catch (error) {
           console.error("NextAuth authorize error:", error);
@@ -79,6 +93,8 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.schoolId = user.schoolId;
         token.schoolName = user.schoolName;
+        token.subjectsTaught = (user as any).subjectsTaught;
+        token.mobile = (user as any).mobile;
       }
 
       return token;
@@ -91,6 +107,8 @@ export const authOptions: NextAuthOptions = {
         role: token.role as Role,
         schoolId: token.schoolId as string | null,
         schoolName: token.schoolName as string | null,
+        subjectsTaught: token.subjectsTaught as string | null,
+        mobile: token.mobile as string | null,
       };
 
       return session;

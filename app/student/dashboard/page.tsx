@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import StudentLayout from "@/components/student/StudentLayout";
 
 export default function StudentDashboard() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [stats, setStats] = useState({
     attendance: 0,
@@ -17,6 +18,8 @@ export default function StudentDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (status === "loading") return;
+
     if (!session) {
       router.push("/login");
       return;
@@ -26,15 +29,27 @@ export default function StudentDashboard() {
       return;
     }
     fetchStats();
-  }, [session]);
+  }, [session, status, router]);
 
   const fetchStats = async () => {
     // Fetch student stats
     setLoading(false);
   };
 
+  if (status === "loading" || loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  if (!session || session.user.role !== "STUDENT") {
+    return null;
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+    <StudentLayout>
       <div className="max-w-7xl mx-auto">
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Student Portal</h1>
@@ -102,7 +117,7 @@ export default function StudentDashboard() {
           </Link>
 
           <Link
-            href="/student/homework"
+            href="/student/assignments"
             className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition cursor-pointer"
           >
             <div className="text-4xl mb-4">📝</div>
@@ -111,21 +126,30 @@ export default function StudentDashboard() {
           </Link>
 
           <Link
-            href="/student/appointments"
-            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition cursor-pointer"
-          >
-            <div className="text-4xl mb-4">📅</div>
-            <h3 className="text-xl font-bold mb-2">Appointments</h3>
-            <p className="text-gray-600">Request appointments with teachers</p>
-          </Link>
-
-          <Link
-            href="/student/payments"
+            href="/student/fees"
             className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition cursor-pointer"
           >
             <div className="text-4xl mb-4">💰</div>
-            <h3 className="text-xl font-bold mb-2">Payments</h3>
+            <h3 className="text-xl font-bold mb-2">Fees</h3>
             <p className="text-gray-600">View fee payments</p>
+          </Link>
+
+          <Link
+            href="/student/chat"
+            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition cursor-pointer"
+          >
+            <div className="text-4xl mb-4">💬</div>
+            <h3 className="text-xl font-bold mb-2">Chat with Teacher</h3>
+            <p className="text-gray-600">Communicate with teachers</p>
+          </Link>
+
+          <Link
+            href="/student/newsfeed"
+            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition cursor-pointer"
+          >
+            <div className="text-4xl mb-4">📢</div>
+            <h3 className="text-xl font-bold mb-2">News Feed</h3>
+            <p className="text-gray-600">View announcements</p>
           </Link>
 
           <Link
@@ -156,6 +180,6 @@ export default function StudentDashboard() {
           </Link>
         </div>
       </div>
-    </div>
+    </StudentLayout>
   );
 }

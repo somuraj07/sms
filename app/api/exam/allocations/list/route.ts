@@ -51,7 +51,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({
       success: true,
-      allocations: enrichedAllocations,
+      data: enrichedAllocations,
     });
   } catch (error: any) {
     console.error("List exam allocations error:", error);

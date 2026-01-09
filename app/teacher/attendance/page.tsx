@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import TeacherLayout from "@/components/teacher/TeacherLayout";
 
 interface Class {
   id: string;
@@ -119,7 +120,7 @@ export default function MarkAttendancePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+    <TeacherLayout>
       <div className="max-w-7xl mx-auto">
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Mark Attendance</h1>
@@ -250,6 +251,6 @@ export default function MarkAttendancePage() {
           )}
         </form>
       </div>
-    </div>
+    </TeacherLayout>
   );
 }

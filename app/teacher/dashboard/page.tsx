@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import TeacherLayout from "@/components/teacher/TeacherLayout";
 
 export default function TeacherDashboard() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [stats, setStats] = useState({
     myClasses: 0,
@@ -17,6 +18,8 @@ export default function TeacherDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (status === "loading") return;
+
     if (!session) {
       router.push("/login");
       return;
@@ -26,15 +29,29 @@ export default function TeacherDashboard() {
       return;
     }
     fetchStats();
-  }, [session]);
+  }, [session, status, router]);
 
   const fetchStats = async () => {
     // Fetch teacher stats
     setLoading(false);
   };
 
+  if (status === "loading" || loading) {
+    return (
+      <TeacherLayout>
+        <div className="flex items-center justify-center h-full">
+          <p>Loading...</p>
+        </div>
+      </TeacherLayout>
+    );
+  }
+
+  if (!session || session.user.role !== "TEACHER") {
+    return null;
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-100 p-6">
+    <TeacherLayout>
       <div className="max-w-7xl mx-auto">
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Teacher Portal</h1>
@@ -102,7 +119,7 @@ export default function TeacherDashboard() {
           </Link>
 
           <Link
-            href="/teacher/homework"
+            href="/teacher/assignments"
             className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition cursor-pointer"
           >
             <div className="text-4xl mb-4">📝</div>
@@ -120,21 +137,24 @@ export default function TeacherDashboard() {
           </Link>
 
           <Link
-            href="/teacher/appointments"
+            href="/teacher/chat"
             className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition cursor-pointer"
           >
-            <div className="text-4xl mb-4">📅</div>
-            <h3 className="text-xl font-bold mb-2">Appointments</h3>
-            <p className="text-gray-600">View student appointments</p>
+            <div className="text-4xl mb-4">💬</div>
+            <h3 className="text-xl font-bold mb-2">Chat with Parents</h3>
+            <p className="text-gray-600">Communicate with parents and students</p>
           </Link>
 
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="text-4xl mb-4">📚</div>
-            <h3 className="text-xl font-bold mb-2">My Classes</h3>
-            <p className="text-gray-600">View assigned classes</p>
-          </div>
+          <Link
+            href="/teacher/newsfeed"
+            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition cursor-pointer"
+          >
+            <div className="text-4xl mb-4">📢</div>
+            <h3 className="text-xl font-bold mb-2">News Feed</h3>
+            <p className="text-gray-600">Create and manage announcements</p>
+          </Link>
         </div>
       </div>
-    </div>
+    </TeacherLayout>
   );
 }

@@ -20,5 +20,8 @@ export async function GET() {
     },
   });
 
-  return NextResponse.json({ exams });
+  return NextResponse.json({ 
+    success: true,
+    data: exams 
+  });
 }

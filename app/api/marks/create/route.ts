@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
     if (!studentId || !classId || !subject || marks === undefined || totalMarks === undefined || !examId) {
       return NextResponse.json(
-        { message: "Missing required fields: studentId, classId, subject, marks, totalMarks, examId" },
+        { success: false, message: "Missing required fields: studentId, classId, subject, marks, totalMarks, examId" },
         { status: 400 }
       );
     }
@@ -29,9 +29,25 @@ export async function POST(req: Request) {
     const schoolId = session.user.schoolId;
     if (!schoolId) {
       return NextResponse.json(
-        { message: "School not found in session" },
+        { success: false, message: "School not found in session" },
         { status: 400 }
       );
+    }
+
+    // Check if teacher teaches this subject
+    const teacher = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { subjectsTaught: true }
+    });
+
+    if (teacher?.subjectsTaught) {
+      const subjects = teacher.subjectsTaught.split(",").map(s => s.trim());
+      if (!subjects.includes(subject)) {
+        return NextResponse.json(
+          { success: false, message: `You can only enter marks for subjects you teach: ${teacher.subjectsTaught}` },
+          { status: 403 }
+        );
+      }
     }
 
     const repository = new PrismaMarkRepository();

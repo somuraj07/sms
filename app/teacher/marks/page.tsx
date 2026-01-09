@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import TeacherLayout from "@/components/teacher/TeacherLayout";
 
 interface Exam {
   id: string;
@@ -71,7 +72,9 @@ export default function MarksPage() {
       const res = await fetch("/api/class/list");
       const data = await res.json();
       if (data.success) {
-        setClasses(data.data || []);
+        // Filter classes assigned to this teacher
+        const teacherClasses = data.data.filter((cls: any) => cls.teacher?.id === session?.user?.id);
+        setClasses(teacherClasses || []);
       }
     } catch (error) {
       console.error("Failed to fetch classes:", error);
@@ -130,7 +133,7 @@ export default function MarksPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-6">
+    <TeacherLayout>
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Enter Marks</h1>
@@ -192,13 +195,24 @@ export default function MarksPage() {
 
             <div>
               <label className="block text-sm font-medium mb-2">Subject *</label>
-              <input
-                type="text"
+              <select
                 value={formData.subject}
                 onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                 className="w-full px-4 py-2 border rounded-lg"
                 required
-              />
+              >
+                <option value="">Select Subject</option>
+                {session?.user && (session.user as any).subjectsTaught
+                  ? (session.user as any).subjectsTaught.split(",").map((subject: string) => (
+                      <option key={subject.trim()} value={subject.trim()}>
+                        {subject.trim()}
+                      </option>
+                    ))
+                  : null}
+              </select>
+              {session?.user && !(session.user as any).subjectsTaught && (
+                <p className="text-sm text-red-600 mt-1">No subjects assigned. Please contact admin.</p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -258,6 +272,6 @@ export default function MarksPage() {
           </button>
         </form>
       </div>
-    </div>
+    </TeacherLayout>
   );
 }

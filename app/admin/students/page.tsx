@@ -90,8 +90,9 @@ export default function StudentsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
-          totalFee: parseFloat(formData.totalFee),
-          discountPercent: parseFloat(formData.discountPercent),
+          AdmissionNo: formData.admissionNo, // API expects capital A
+          totalFee: parseFloat(formData.totalFee) || 0,
+          discountPercent: parseFloat(formData.discountPercent) || 0,
         }),
       });
 

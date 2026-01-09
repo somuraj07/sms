@@ -4,7 +4,14 @@ import prisma from "@/lib/db";
 
 export class PrismaStudentRepository implements IStudentRepository {
   async create(data: CreateStudentData): Promise<Student> {
-    const student = await prisma.student.create({ data });
+    // Map admissionNo to AdmissionNo for Prisma schema
+    const prismaData: any = {
+      ...data,
+      AdmissionNo: data.admissionNo,
+    };
+    delete prismaData.admissionNo;
+    
+    const student = await prisma.student.create({ data: prismaData });
     return this.toStudentEntity(student);
   }
 
@@ -31,15 +38,22 @@ export class PrismaStudentRepository implements IStudentRepository {
 
   async findByAdmissionNo(admissionNo: string, schoolId: string): Promise<Student | null> {
     const student = await prisma.student.findFirst({
-      where: { admissionNo, schoolId },
+      where: { AdmissionNo: admissionNo, schoolId },
     });
     return student ? this.toStudentEntity(student) : null;
   }
 
   async update(id: string, data: Partial<CreateStudentData>): Promise<Student> {
+    // Map admissionNo to AdmissionNo for Prisma schema
+    const prismaData: any = { ...data };
+    if (prismaData.admissionNo !== undefined) {
+      prismaData.AdmissionNo = prismaData.admissionNo;
+      delete prismaData.admissionNo;
+    }
+    
     const student = await prisma.student.update({
       where: { id },
-      data,
+      data: prismaData,
     });
     return this.toStudentEntity(student);
   }
@@ -54,7 +68,7 @@ export class PrismaStudentRepository implements IStudentRepository {
 
   async existsByAdmissionNo(admissionNo: string, schoolId: string): Promise<boolean> {
     const count = await prisma.student.count({
-      where: { admissionNo, schoolId },
+      where: { AdmissionNo: admissionNo, schoolId },
     });
     return count > 0;
   }

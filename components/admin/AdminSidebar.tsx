@@ -7,9 +7,9 @@ import { useState } from "react";
 
 const menuItems = [
   {
-    title: "Dashboard",
-    href: "/dashboard/admin",
-    icon: "📊",
+    title: "Analysis",
+    href: "/admin/analytics",
+    icon: "📈",
   },
   {
     title: "Classes",
@@ -47,9 +47,14 @@ const menuItems = [
     icon: "🏠",
   },
   {
-    title: "Exam Allocation",
-    href: "/exam",
+    title: "Exams",
+    href: "/admin/exams",
     icon: "📝",
+  },
+  {
+    title: "Exam Allocation",
+    href: "/admin/exam",
+    icon: "📋",
   },
   {
     title: "Attendance",

@@ -33,7 +33,7 @@ export default function TeachersPage() {
       router.push("/login");
       return;
     }
-    if (session.user.role !== "ADMIN") {
+    if (session.user.role !== "TEACHER") {
       router.push("/dashboard");
       return;
     }

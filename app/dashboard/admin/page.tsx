@@ -79,6 +79,21 @@ export default function AdminDashboard() {
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          <Link
+            href="/admin/analytics"
+            className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl shadow-lg p-6 text-white hover:shadow-xl transition"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-indigo-100 text-sm mb-1">View Analytics</p>
+                <p className="text-2xl font-bold">📈</p>
+              </div>
+              <div className="text-5xl opacity-80">→</div>
+            </div>
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
@@ -194,40 +209,14 @@ export default function AdminDashboard() {
             <p className="text-gray-600">View payment transactions</p>
           </Link>
 
-          <Link
-            href="/hostel"
-            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition cursor-pointer"
-          >
-            <div className="text-4xl mb-4">🏠</div>
-            <h3 className="text-xl font-bold mb-2">Hostel Management</h3>
-            <p className="text-gray-600">Manage hostel rooms and bookings</p>
-          </Link>
 
           <Link
-            href="/bus"
-            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition cursor-pointer"
-          >
-            <div className="text-4xl mb-4">🚌</div>
-            <h3 className="text-xl font-bold mb-2">Bus Management</h3>
-            <p className="text-gray-600">Manage buses and schedules</p>
-          </Link>
-
-          <Link
-            href="/exam"
+            href="/admin/exam"
             className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition cursor-pointer"
           >
             <div className="text-4xl mb-4">📝</div>
             <h3 className="text-xl font-bold mb-2">Exam Allocation</h3>
             <p className="text-gray-600">Manage exam schedules and allocations</p>
-          </Link>
-
-          <Link
-            href="/admin/newsfeed"
-            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition cursor-pointer"
-          >
-            <div className="text-4xl mb-4">📢</div>
-            <h3 className="text-xl font-bold mb-2">News Feed</h3>
-            <p className="text-gray-600">Create and manage announcements</p>
           </Link>
 
           <Link

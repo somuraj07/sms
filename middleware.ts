@@ -12,22 +12,25 @@ export async function middleware(request: NextRequest) {
 
   // Extract subdomain from hostname
   // Format: subdomain.company.com or subdomain.localhost:3000
-  const parts = hostname.split(".");
-  let subdomain = parts[0];
-
-  // Handle localhost:3000 case
+  let subdomain = "";
+  
+  // Handle localhost:3000 case - e.g., college1.localhost:3000
   if (hostname.includes("localhost")) {
-    // For localhost, check if there's a subdomain prefix
-    // e.g., college-name.localhost:3000
+    const parts = hostname.split(".");
+    // If first part is not "localhost", it's the subdomain
     if (parts.length > 1 && parts[0] !== "localhost") {
       subdomain = parts[0];
-    } else {
-      subdomain = "";
+    }
+  } else {
+    // For production domains: subdomain.domain.com
+    const parts = hostname.split(".");
+    if (parts.length > 2) {
+      subdomain = parts[0];
     }
   }
 
   // If it's the main domain (no subdomain or 'www'), skip
-  if (subdomain === "www" || !subdomain || subdomain === hostname) {
+  if (subdomain === "www" || !subdomain) {
     return NextResponse.next();
   }
 

@@ -61,11 +61,17 @@ export async function GET(req: Request) {
       },
     });
 
-    return NextResponse.json({ students }, { status: 200 });
+    return NextResponse.json({ 
+      success: true,
+      data: students 
+    }, { status: 200 });
   } catch (error: any) {
     console.error("Get class students error:", error);
     return NextResponse.json(
-      { message: error?.message || "Internal server error" },
+      { 
+        success: false,
+        message: error?.message || "Internal server error" 
+      },
       { status: 500 }
     );
   }
