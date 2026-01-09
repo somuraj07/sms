@@ -1,15 +1,29 @@
 "use client";
 
-import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { signIn, useSession } from "next-auth/react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { data: session } = useSession();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+
+  // Redirect based on role if session exists
+  useEffect(() => {
+    if (session?.user?.role) {
+      if (session.user.role === "SUPERADMIN") {
+        router.push("/dashboard/superadmin");
+      } else if (session.user.role === "ADMIN") {
+        router.push("/dashboard/admin");
+      } else {
+        router.push("/dashboard");
+      }
+    }
+  }, [session, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +39,25 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/dashboard");
+    // Fetch session to get role and redirect accordingly
+    try {
+      const sessionRes = await fetch("/api/auth/session");
+      const sessionData = await sessionRes.json();
+      
+      if (sessionData?.user?.role) {
+        if (sessionData.user.role === "SUPERADMIN") {
+          router.push("/dashboard/superadmin");
+        } else if (sessionData.user.role === "ADMIN") {
+          router.push("/dashboard/admin");
+        } else {
+          router.push("/dashboard");
+        }
+      } else {
+        router.push("/dashboard");
+      }
+    } catch (err) {
+      router.push("/dashboard");
+    }
   };
 
   return (
