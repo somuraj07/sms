@@ -1,20 +1,53 @@
-import { AuthService } from "@/modules/auth/auth.service";
 import { NextResponse } from "next/server";
+import { container } from "@/infrastructure/di/container";
+import { SignupRequestDTO } from "@/application/dtos/SignupDTO";
 
-
+/**
+ * API Route Handler - Presentation Layer
+ * Uses clean architecture with dependency injection
+ */
 export async function POST(request: Request) {
-    try {
-        const { email, password, name, role } = await request.json();
-        if (!email || !password || !name || !role) {
-            return NextResponse.json({ error: "All fields are required" }, { status: 400 });
-        }
+  try {
+    const body = await request.json();
+    const { email, password, name, role, schoolId } = body;
 
-        // service logic to signup
-        const authService = new AuthService();
-        const user = await authService.signup(name, email, password, role);
-
-        return NextResponse.json({ message: "User created successfully" }, { status: 201 });
-    } catch (error) {
-        return NextResponse.json({ error: "Internal server error in signup" }, { status: 500 });
+    // Validation
+    if (!email || !password || !name || !role) {
+      return NextResponse.json(
+        { error: "All fields are required" },
+        { status: 400 }
+      );
     }
+
+    // Create DTO
+    const signupRequest: SignupRequestDTO = {
+      name,
+      email,
+      password,
+      role,
+      schoolId: schoolId || null,
+    };
+
+    // Execute use case via controller
+    const controller = container.authController;
+    const result = await controller.signup(signupRequest);
+
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.error },
+        { status: result.statusCode || 500 }
+      );
+    }
+
+    return NextResponse.json(
+      { message: result.message, data: result.data },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("Signup error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
 }
